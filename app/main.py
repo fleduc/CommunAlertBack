@@ -1,7 +1,18 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import auth, users, alerts, messages
 print("✅ FastAPI démarre")
+
+# Configurer le logging pour écrire sur stdout
+logging.basicConfig(
+    level=logging.INFO,                   # Niveau de log (INFO, DEBUG, etc.)
+    format="%(levelname)s -> %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+logger.info("Démarrage de l'application FastAPI")
 
 app = FastAPI(title="CommunAlert API")
 

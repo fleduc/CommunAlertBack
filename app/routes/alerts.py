@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app import models, schemas, database
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,12 +21,18 @@ def get_db():
 
 
 @router.get("/", response_model=List[schemas.AlertResponse])
-def list_alerts(db: Session = Depends(get_db)):
+def list_alerts(request: Request, db: Session = Depends(get_db)):
+    logger.info("Requête GET sur /api/alerts/")
+    logger.info("Cookies reçus : %s", request.cookies)
+    logger.info("Query params : %s", request.query_params)
     return db.query(models.Alert).all()
 
 
 @router.get("/{alert_id}", response_model=schemas.AlertResponse)
-def get_alert(alert_id: int, db: Session = Depends(get_db)):
+def get_alert(request: Request, alert_id: int, db: Session = Depends(get_db)):
+    logger.info("Requête GET sur /api/alert{id}/")
+    logger.info("Cookies reçus : %s", request.cookies)
+    logger.info("Query params : %s", request.query_params)
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerte non trouvée")
@@ -31,7 +40,9 @@ def get_alert(alert_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=schemas.AlertResponse)
-def create_alert(alert: schemas.AlertCreate, db: Session = Depends(get_db)):
+def create_alert(request: Request, alert: schemas.AlertCreate, db: Session = Depends(get_db)):
+    logger.info("Requête POST sur /api/alerts/ avec body : %s", alert.dict())
+    logger.info("Cookies reçus : %s", request.cookies)
     new_alert = models.Alert(
         alert_title=alert.alert_title,
         description=alert.description,

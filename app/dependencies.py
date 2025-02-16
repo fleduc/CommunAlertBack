@@ -1,11 +1,6 @@
-# app/dependencies.py
-
-from fastapi import Header, HTTPException, status, Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Cookie, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from app import models, database, security, schemas
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+from app import models, database, security
 
 
 def get_db():
@@ -16,22 +11,26 @@ def get_db():
         db.close()
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: database.SessionLocal = Depends(get_db)) -> models.User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def get_token_from_cookie(access_token: str = Cookie(None)):
+    if not access_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    return access_token
+
+
+def get_current_user(token: str = Depends(get_token_from_cookie), db: Session = Depends(get_db)) -> models.User:
+    # Retirez "Bearer " si présent
+    if token.startswith("Bearer "):
+        token = token[7:]
     payload = security.verify_access_token(token)
-
     if payload is None:
-        raise credentials_exception
-    user_id: int = payload.get("user_id")
-
-    if user_id is None:
-        raise credentials_exception
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    user_id = payload.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
     user = db.query(models.User).filter(models.User.id == user_id).first()
-
-    if user is None:
-        raise credentials_exception
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user

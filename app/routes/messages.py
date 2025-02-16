@@ -1,16 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app import models, schemas, database
 from app.dependencies import get_current_user, get_db
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
 # 1. Créer un message dans le contexte d'une alerte donnée
 @router.post("/", response_model=schemas.MessageResponse)
-def create_message(alert_id: int, message: schemas.MessageCreate, db: Session = Depends(get_db),
+def create_message(request: Request, alert_id: int, message: schemas.MessageCreate, db: Session = Depends(get_db),
                    current_user: models.User = Depends(get_current_user)):
+    logger.info("Requête POST sur /api/alerts/%s/messages/ avec body : %s", alert_id, message.dict())
+    logger.info("Cookies reçus : %s", request.cookies)
     # Vérifier que l'alerte existe
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
