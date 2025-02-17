@@ -82,7 +82,7 @@ The backend is containerized using Docker and orchestrated with Docker Compose. 
 To get started, clone the repository with:
 
 ```bash
-git clone https://github.com/your-username/communalert.git
+git clone https://github.com/fleduc/CommunAlertBack.git
 cd communalert
 ```
 
