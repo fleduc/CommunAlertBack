@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from datetime import datetime
 from app import models, schemas, database
 from app.dependencies import get_current_user, get_db
@@ -42,7 +42,14 @@ def list_messages(alert_id: int, db: Session = Depends(get_db),
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alerte non trouvée")
-    messages = db.query(models.Message).filter(models.Message.alert_id == alert_id).all()
+
+    messages = (
+        db.query(models.Message)
+        .options(joinedload(models.Message.sender))
+        .filter(models.Message.alert_id == alert_id)
+        .all()
+    )
+    logger.info("Messages", messages)
     return messages
 
 

@@ -34,6 +34,14 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
+class UserBrief(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
 # Schéma de base pour une alerte
 class AlertBase(BaseModel):
     alert_title: str
@@ -80,13 +88,18 @@ class MessageResponse(MessageBase):
     id: int
     alert_id: int
     sender_id: int
+    sender: UserBrief
     created_at: datetime
 
-    reactions: Optional[List["MessageReactionResponse"]] = []
-    read_by: Optional[List["MessageReadResponse"]] = []
+    # WIP
+    # reactions: Optional[List["MessageReactionResponse"]] = []
+    # read_by: Optional[List["MessageReadResponse"]] = []
 
     class Config:
         from_attributes = True
+
+# Pour résoudre d'éventuelles références circulaires
+MessageResponse.model_rebuild()
 
 
 class MessageReadBase(BaseModel):
