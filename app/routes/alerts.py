@@ -1,18 +1,32 @@
+"""
+Module: alerts.py
+Description: This module defines the API endpoints for managing alerts.
+It uses FastAPI for routing and SQLAlchemy for database interactions.
+All log messages and error details have been translated to English.
+"""
+
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-from app import models, schemas, database
 from typing import List
+
+from app import models, schemas, database
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-print("✅ Routes ALERTS chargées")
+# Log that the alert routes have been loaded.
+print("✅ Alerts routes loaded")
 
 
-# Dépendance pour obtenir la session DB
 def get_db():
+    """
+    Dependency that provides a database session.
+
+    Yields:
+        Session: SQLAlchemy session instance.
+    """
     db = database.SessionLocal()
     try:
         yield db
@@ -22,27 +36,62 @@ def get_db():
 
 @router.get("/", response_model=List[schemas.AlertResponse])
 def list_alerts(request: Request, db: Session = Depends(get_db)):
-    logger.info("Requête GET sur /api/alerts/")
-    logger.info("Cookies reçus : %s", request.cookies)
-    logger.info("Query params : %s", request.query_params)
+    """
+    Retrieve a list of all alerts.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        db (Session, optional): Database session dependency.
+
+    Returns:
+        List[schemas.AlertResponse]: A list of alerts.
+    """
+    logger.info("GET request on /api/alerts/")
+    logger.info("Received cookies: %s", request.cookies)
+    logger.info("Query parameters: %s", request.query_params)
     return db.query(models.Alert).all()
 
 
 @router.get("/{alert_id}", response_model=schemas.AlertResponse)
 def get_alert(request: Request, alert_id: int, db: Session = Depends(get_db)):
-    logger.info("Requête GET sur /api/alert{id}/")
-    logger.info("Cookies reçus : %s", request.cookies)
-    logger.info("Query params : %s", request.query_params)
+    """
+    Retrieve a specific alert by its ID.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        alert_id (int): The ID of the alert to retrieve.
+        db (Session, optional): Database session dependency.
+
+    Returns:
+        schemas.AlertResponse: The alert object.
+
+    Raises:
+        HTTPException: If the alert is not found.
+    """
+    logger.info("GET request on /api/alerts/%s/", alert_id)
+    logger.info("Received cookies: %s", request.cookies)
+    logger.info("Query parameters: %s", request.query_params)
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerte non trouvée")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
     return alert
 
 
 @router.post("/", response_model=schemas.AlertResponse)
 def create_alert(request: Request, alert: schemas.AlertCreate, db: Session = Depends(get_db)):
-    logger.info("Requête POST sur /api/alerts/ avec body : %s", alert.dict())
-    logger.info("Cookies reçus : %s", request.cookies)
+    """
+    Create a new alert.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        alert (schemas.AlertCreate): The alert data to create.
+        db (Session, optional): Database session dependency.
+
+    Returns:
+        schemas.AlertResponse: The newly created alert.
+    """
+    logger.info("POST request on /api/alerts/ with body: %s", alert.dict())
+    logger.info("Received cookies: %s", request.cookies)
     new_alert = models.Alert(
         alert_title=alert.alert_title,
         description=alert.description,
@@ -57,14 +106,29 @@ def create_alert(request: Request, alert: schemas.AlertCreate, db: Session = Dep
     return new_alert
 
 
-# Endpoint pour modifier une alerte
 @router.put("/{alert_id}", response_model=schemas.AlertResponse)
 def update_alert(alert_id: int, alert_update: schemas.AlertUpdate, db: Session = Depends(get_db)):
+    """
+    Update an existing alert.
+
+    Only the fields provided in the request will be updated.
+
+    Args:
+        alert_id (int): The ID of the alert to update.
+        alert_update (schemas.AlertUpdate): The updated alert data.
+        db (Session, optional): Database session dependency.
+
+    Returns:
+        schemas.AlertResponse: The updated alert.
+
+    Raises:
+        HTTPException: If the alert is not found.
+    """
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerte non trouvée")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
 
-    # Mettre à jour les champs uniquement s'ils sont fournis dans la requête
+    # Update fields only if provided in the request.
     if alert_update.alert_title is not None:
         alert.alert_title = alert_update.alert_title
     if alert_update.description is not None:
@@ -83,12 +147,21 @@ def update_alert(alert_id: int, alert_update: schemas.AlertUpdate, db: Session =
     return alert
 
 
-# Endpoint pour supprimer une alerte
 @router.delete("/{alert_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_alert(alert_id: int, db: Session = Depends(get_db)):
+    """
+    Delete an alert by its ID.
+
+    Args:
+        alert_id (int): The ID of the alert to delete.
+        db (Session, optional): Database session dependency.
+
+    Raises:
+        HTTPException: If the alert is not found.
+    """
     alert = db.query(models.Alert).filter(models.Alert.id == alert_id).first()
     if not alert:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerte non trouvée")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alert not found")
     db.delete(alert)
     db.commit()
     return

@@ -1,22 +1,30 @@
+"""
+Module: main.py
+Description: This module initializes and configures the FastAPI application. It sets up logging,
+CORS middleware, and includes the route modules for authentication, users, alerts, and messages.
+"""
+
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import auth, users, alerts, messages
-print("✅ FastAPI démarre")
 
-# Configurer le logging pour écrire sur stdout
+# Indicate that FastAPI is starting.
+print("✅ FastAPI is starting")
+
+# Configure logging to output to stdout.
 logging.basicConfig(
-    level=logging.INFO,                   # Niveau de log (INFO, DEBUG, etc.)
+    level=logging.INFO,  # Log level (INFO, DEBUG, etc.)
     format="%(levelname)s -> %(message)s"
 )
 
 logger = logging.getLogger(__name__)
+logger.info("Starting FastAPI application")
 
-logger.info("Démarrage de l'application FastAPI")
-
+# Initialize the FastAPI application.
 app = FastAPI(title="CommunAlert API")
 
-# Configurer CORS
+# Configure CORS middleware.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -25,19 +33,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("✅ Importation des routes AUTH")
+# Include authentication routes.
+print("✅ Importing AUTH routes")
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 
-print("✅ Importation des routes USERS")
+# Include user routes.
+print("✅ Importing USERS routes")
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 
-print("✅ Importation des routes ALERTS")
+# Include alert routes.
+print("✅ Importing ALERTS routes")
 app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 
-print("✅ Importation des routes MESSAGES")
+# Include message routes.
+print("✅ Importing MESSAGES routes")
 app.include_router(messages.router, prefix="/api/alerts/{alert_id}/messages", tags=["messages"])
-
 
 @app.get("/")
 def read_root():
-    return {"message": "Bienvenue sur CommunAlert API"}
+    """
+    Root endpoint that returns a welcome message.
+    """
+    return {"message": "Welcome to CommunAlert API"}

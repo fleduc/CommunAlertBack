@@ -1,32 +1,45 @@
+"""
+Module: schemas.py
+Description: This module defines the Pydantic models (schemas) used for data validation and
+serialization/deserialization within the application. Schemas are provided for authentication tokens,
+users, alerts, messages, message read receipts, and message reactions.
+"""
+
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
 
 class Token(BaseModel):
+    """Schema for access tokens."""
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
+    """Schema for token payload data."""
     user_id: Optional[int] = None
 
 
 class UserLogin(BaseModel):
+    """Schema for user login credentials."""
     email: EmailStr
     password: str
 
 
 class UserBase(BaseModel):
+    """Base schema for user with common attributes."""
     username: str
     email: EmailStr
 
 
 class UserCreate(UserBase):
+    """Schema for creating a new user."""
     password: str
 
 
 class UserResponse(UserBase):
+    """Schema for user response data."""
     id: int
     created_at: datetime
 
@@ -35,6 +48,7 @@ class UserResponse(UserBase):
 
 
 class UserBrief(BaseModel):
+    """Schema for brief user information."""
     id: int
     username: str
 
@@ -42,8 +56,8 @@ class UserBrief(BaseModel):
         from_attributes = True
 
 
-# Schéma de base pour une alerte
 class AlertBase(BaseModel):
+    """Base schema for alerts."""
     alert_title: str
     description: str
     alert_type: int
@@ -52,13 +66,16 @@ class AlertBase(BaseModel):
     user_id: int
 
 
-# Pour la création, on peut hériter de AlertBase
 class AlertCreate(AlertBase):
+    """Schema for creating a new alert."""
     pass
 
 
-# Pour la mise à jour, vous pouvez exiger les mêmes champs ou définir des champs optionnels selon vos besoins.
 class AlertUpdate(BaseModel):
+    """
+    Schema for updating an alert.
+    All fields are optional to allow partial updates.
+    """
     alert_title: Optional[str] = None
     description: Optional[str] = None
     alert_type: Optional[int] = None
@@ -68,6 +85,7 @@ class AlertUpdate(BaseModel):
 
 
 class AlertResponse(AlertBase):
+    """Schema for alert response data."""
     id: int
     created_at: datetime
 
@@ -76,41 +94,48 @@ class AlertResponse(AlertBase):
 
 
 class MessageBase(BaseModel):
+    """Base schema for messages."""
     content: str
-    media_url: Optional[str] = None  # Optionnel
+    media_url: Optional[str] = None  # Optional URL for media (image, file, etc.)
 
 
 class MessageCreate(MessageBase):
+    """Schema for creating a new message."""
     pass
 
 
 class MessageResponse(MessageBase):
+    """Schema for message response data."""
     id: int
     alert_id: int
     sender_id: int
     sender: UserBrief
     created_at: datetime
 
-    # WIP
+    # Uncomment and implement if reactions and read receipts need to be included.
     # reactions: Optional[List["MessageReactionResponse"]] = []
     # read_by: Optional[List["MessageReadResponse"]] = []
 
     class Config:
         from_attributes = True
 
-# Pour résoudre d'éventuelles références circulaires
+
+# Rebuild the MessageResponse model to resolve any potential circular references.
 MessageResponse.model_rebuild()
 
 
 class MessageReadBase(BaseModel):
+    """Base schema for message read receipts."""
     pass
 
 
 class MessageReadCreate(MessageReadBase):
+    """Schema for creating a message read receipt."""
     pass
 
 
 class MessageReadResponse(BaseModel):
+    """Schema for message read receipt response data."""
     id: int
     message_id: int
     user_id: int
@@ -121,14 +146,17 @@ class MessageReadResponse(BaseModel):
 
 
 class MessageReactionBase(BaseModel):
+    """Base schema for message reactions."""
     emoji: str
 
 
 class MessageReactionCreate(MessageReactionBase):
+    """Schema for creating a message reaction."""
     pass
 
 
 class MessageReactionResponse(BaseModel):
+    """Schema for message reaction response data."""
     id: int
     message_id: int
     user_id: int
