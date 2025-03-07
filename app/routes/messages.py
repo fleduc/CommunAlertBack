@@ -89,7 +89,10 @@ def list_messages(
 
     messages = (
         db.query(models.Message)
-        .options(joinedload(models.Message.sender))
+        .options(
+            joinedload(models.Message.sender),
+            joinedload(models.Message.reactions)
+        )
         .filter(models.Message.alert_id == alert_id)
         .all()
     )

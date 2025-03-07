@@ -9,7 +9,7 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
-
+# Token -----------------
 class Token(BaseModel):
     """Schema for access tokens."""
     access_token: str
@@ -21,6 +21,7 @@ class TokenData(BaseModel):
     user_id: Optional[int] = None
 
 
+# User -----------------
 class UserLogin(BaseModel):
     """Schema for user login credentials."""
     email: EmailStr
@@ -56,6 +57,7 @@ class UserBrief(BaseModel):
         from_attributes = True
 
 
+# Alert -----------------
 class AlertBase(BaseModel):
     """Base schema for alerts."""
     alert_title: str
@@ -93,37 +95,30 @@ class AlertResponse(AlertBase):
         from_attributes = True
 
 
-class MessageBase(BaseModel):
-    """Base schema for messages."""
-    content: str
-    media_url: Optional[str] = None  # Optional URL for media (image, file, etc.)
+# Message Reaction -----------------
+class MessageReactionBase(BaseModel):
+    """Base schema for message reactions."""
+    emoji: str
 
 
-class MessageCreate(MessageBase):
-    """Schema for creating a new message."""
+class MessageReactionCreate(MessageReactionBase):
+    """Schema for creating a message reaction."""
     pass
 
 
-class MessageResponse(MessageBase):
-    """Schema for message response data."""
+class MessageReactionResponse(BaseModel):
+    """Schema for message reaction response data."""
     id: int
-    alert_id: int
-    sender_id: int
-    sender: UserBrief
+    message_id: int
+    user_id: int
+    emoji: str
     created_at: datetime
-
-    # Uncomment and implement if reactions and read receipts need to be included.
-    # reactions: Optional[List["MessageReactionResponse"]] = []
-    # read_by: Optional[List["MessageReadResponse"]] = []
 
     class Config:
         from_attributes = True
 
 
-# Rebuild the MessageResponse model to resolve any potential circular references.
-MessageResponse.model_rebuild()
-
-
+# Message Read -----------------
 class MessageReadBase(BaseModel):
     """Base schema for message read receipts."""
     pass
@@ -145,22 +140,32 @@ class MessageReadResponse(BaseModel):
         from_attributes = True
 
 
-class MessageReactionBase(BaseModel):
-    """Base schema for message reactions."""
-    emoji: str
+# Message -----------------
+class MessageBase(BaseModel):
+    """Base schema for messages."""
+    content: str
+    media_url: Optional[str] = None  # Optional URL for media (image, file, etc.)
 
 
-class MessageReactionCreate(MessageReactionBase):
-    """Schema for creating a message reaction."""
+class MessageCreate(MessageBase):
+    """Schema for creating a new message."""
     pass
 
 
-class MessageReactionResponse(BaseModel):
-    """Schema for message reaction response data."""
+class MessageResponse(MessageBase):
+    """Schema for message response data."""
     id: int
-    message_id: int
-    user_id: int
+    alert_id: int
+    sender_id: int
+    sender: UserBrief
     created_at: datetime
+    reactions: Optional[List["MessageReactionResponse"]] = []
+    read_by: Optional[List["MessageReadResponse"]] = []
 
     class Config:
         from_attributes = True
+
+
+# Rebuild the MessageResponse model to resolve any potential circular references.
+MessageResponse.model_rebuild()
+
