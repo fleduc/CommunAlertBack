@@ -8,3 +8,4 @@ email-validator
 pydantic[email]~=2.10.6
 python-jose[cryptography]
 passlib~=1.7.4
+python-multipart

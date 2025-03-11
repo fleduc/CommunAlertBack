@@ -8,6 +8,8 @@ services:
       - .env
     depends_on:
       - mysql-db
+    volumes:
+      - ./static:/app/static
 
   mysql-db:
     image: mysql:8

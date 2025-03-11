@@ -8,6 +8,7 @@ users, alerts, messages, message read receipts, and message reactions.
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
+from enum import Enum
 
 # Token -----------------
 class Token(BaseModel):
@@ -57,6 +58,21 @@ class UserBrief(BaseModel):
         from_attributes = True
 
 
+# Enums for alerts -----------------
+class AlertStatus(str, Enum):
+    """Enum for alert status."""
+    open = "open"
+    closed = "closed"
+    archived = "archived"
+
+
+class SeverityLevel(str, Enum):
+    """Enum for alert severity level."""
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
 # Alert -----------------
 class AlertBase(BaseModel):
     """Base schema for alerts."""
@@ -65,7 +81,15 @@ class AlertBase(BaseModel):
     alert_type: int
     closing_date: Optional[datetime] = None
     postal_code: Optional[str] = None
-    user_id: int
+    starting_date: Optional[datetime] = None        # The date when the event starts
+    longitude: Optional[float] = None               # Longitude of the alert location
+    latitude: Optional[float] = None                # Latitude of the alert location
+    radius: Optional[float] = None                  # Radius in kilometers to spread the alert
+    status: AlertStatus = AlertStatus.open          # Alert status (open, closed, archived)
+    planned_duration: Optional[int] = None          # Planned duration (in days) for auto-close
+    severity_level: Optional[SeverityLevel] = None  # Severity level (low, medium, high)
+    public_status: Optional[bool] = False           # Public status (true if visible publicly)
+    user_id: int                                    # creator's user ID
 
 
 class AlertCreate(AlertBase):
@@ -83,7 +107,14 @@ class AlertUpdate(BaseModel):
     alert_type: Optional[int] = None
     closing_date: Optional[datetime] = None
     postal_code: Optional[str] = None
-    user_id: Optional[int] = None
+    starting_date: Optional[datetime] = None
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
+    radius: Optional[float] = None
+    status: Optional[AlertStatus] = None
+    planned_duration: Optional[int] = None
+    severity_level: Optional[SeverityLevel] = None
+    public_status: Optional[bool] = None
 
 
 class AlertResponse(AlertBase):
@@ -159,8 +190,8 @@ class MessageResponse(MessageBase):
     sender_id: int
     sender: UserBrief
     created_at: datetime
-    reactions: Optional[List["MessageReactionResponse"]] = []
-    read_by: Optional[List["MessageReadResponse"]] = []
+    reactions: Optional[List[MessageReactionResponse]] = []
+    read_by: Optional[List[MessageReadResponse]] = []
 
     class Config:
         from_attributes = True
@@ -168,4 +199,3 @@ class MessageResponse(MessageBase):
 
 # Rebuild the MessageResponse model to resolve any potential circular references.
 MessageResponse.model_rebuild()
-

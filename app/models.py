@@ -4,10 +4,11 @@ Description: This module defines the SQLAlchemy models representing the entities
 including users, alerts, messages, message read receipts, and message reactions.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, Float, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
+import enum
 
 
 class User(Base):
@@ -31,6 +32,19 @@ class User(Base):
     messages = relationship("Message", back_populates="sender", cascade="all, delete-orphan")
 
 
+# Optional: define an Enum for status and severity_level if you want stricter values.
+class AlertStatus(str, enum.Enum):
+    open = "open"
+    closed = "closed"
+    archived = "archived"
+
+
+class SeverityLevel(str, enum.Enum):
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+
 class Alert(Base):
     """
     Model representing an alert.
@@ -41,8 +55,17 @@ class Alert(Base):
     alert_title = Column(String(255), index=True, nullable=False)
     description = Column(Text, nullable=False)
     alert_type = Column(Integer, nullable=False)  # Type of alert
+    severity_level = Column(Enum(SeverityLevel), nullable=True)
+    starting_date = Column(DateTime, nullable=True)
     closing_date = Column(DateTime, nullable=True)  # Closing date of the alert
+    planned_duration = Column(Integer, nullable=True)  # In days
+    status = Column(Enum(AlertStatus), nullable=False, server_default="open")
+    public_status = Column(Boolean, default=False)
     postal_code = Column(String(10), nullable=True)  # Postal code
+    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
+    radius = Column(Float, nullable=True)  # Radius in kilometers
+    picture = Column(String(256), nullable=True)  # Link or path to the client's image
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

@@ -7,6 +7,7 @@ CORS middleware, and includes the route modules for authentication, users, alert
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.routes import auth, users, alerts, messages
 
 # Indicate that FastAPI is starting.
@@ -33,6 +34,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Configure static files serving
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include authentication routes.
 print("✅ Importing AUTH routes")
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
@@ -48,6 +52,7 @@ app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 # Include message routes.
 print("✅ Importing MESSAGES routes")
 app.include_router(messages.router, prefix="/api/alerts/{alert_id}/messages", tags=["messages"])
+
 
 @app.get("/")
 def read_root():
