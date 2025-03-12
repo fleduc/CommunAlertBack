@@ -4,12 +4,12 @@ services:
     container_name: communalert_backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./static:/app/static
     env_file:
       - .env
     depends_on:
       - mysql-db
-    volumes:
-      - ./static:/app/static
 
   mysql-db:
     image: mysql:8

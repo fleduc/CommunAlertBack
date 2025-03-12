@@ -5,10 +5,11 @@ serialization/deserialization within the application. Schemas are provided for a
 users, alerts, messages, message read receipts, and message reactions.
 """
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional, List
 from enum import Enum
+
 
 # Token -----------------
 class Token(BaseModel):
@@ -73,26 +74,48 @@ class SeverityLevel(str, Enum):
     high = "high"
 
 
-# Alert -----------------
+# Alert Schemas -----------------
 class AlertBase(BaseModel):
-    """Base schema for alerts."""
+    """Base schema for alerts, used for responses."""
     alert_title: str
     description: str
     alert_type: int
     closing_date: Optional[datetime] = None
     postal_code: Optional[str] = None
-    starting_date: Optional[datetime] = None        # The date when the event starts
-    longitude: Optional[float] = None               # Longitude of the alert location
-    latitude: Optional[float] = None                # Latitude of the alert location
-    radius: Optional[float] = None                  # Radius in kilometers to spread the alert
-    status: AlertStatus = AlertStatus.open          # Alert status (open, closed, archived)
-    planned_duration: Optional[int] = None          # Planned duration (in days) for auto-close
+    picture: Optional[str] = None          # URL/path to the customer's image (up to 256 characters)
+    starting_date: Optional[datetime] = None # The date when the event starts
+    longitude: Optional[float] = None        # Longitude of the alert location
+    latitude: Optional[float] = None         # Latitude of the alert location
+    radius: Optional[float] = None           # Radius in kilometers to spread the alert
+    status: AlertStatus = AlertStatus.open   # Alert status (open, closed, archived)
+    planned_duration: Optional[int] = None   # Planned duration (in days) for auto-close
     severity_level: Optional[SeverityLevel] = None  # Severity level (low, medium, high)
-    public_status: Optional[bool] = False           # Public status (true if visible publicly)
-    user_id: int                                    # creator's user ID
+    public_status: Optional[bool] = False    # Public status (true if visible publicly)
+    user_id: int                             # Creator's user ID
 
 
-class AlertCreate(AlertBase):
+class AlertInput(BaseModel):
+    """
+    Schema for alert input (for creation and update).
+    Notice: It excludes the user_id, which will be set in the backend.
+    """
+    alert_title: str
+    description: str
+    alert_type: int
+    closing_date: Optional[datetime] = None
+    postal_code: Optional[str] = None
+    picture: Optional[str] = None          # Optional field; not typically provided by the client when using file upload.
+    starting_date: Optional[datetime] = None
+    longitude: Optional[float] = None
+    latitude: Optional[float] = None
+    radius: Optional[float] = None
+    status: Optional[AlertStatus] = AlertStatus.open
+    planned_duration: Optional[int] = None
+    severity_level: Optional[SeverityLevel] = None
+    public_status: Optional[bool] = False
+
+
+class AlertCreate(AlertInput):
     """Schema for creating a new alert."""
     pass
 
@@ -107,6 +130,7 @@ class AlertUpdate(BaseModel):
     alert_type: Optional[int] = None
     closing_date: Optional[datetime] = None
     postal_code: Optional[str] = None
+    picture: Optional[str] = None
     starting_date: Optional[datetime] = None
     longitude: Optional[float] = None
     latitude: Optional[float] = None
@@ -121,9 +145,14 @@ class AlertResponse(AlertBase):
     """Schema for alert response data."""
     id: int
     created_at: datetime
+    user: Optional["UserBrief"]  # Include brief user information
 
     class Config:
         from_attributes = True
+
+
+# Rebuild forward references if necessary.
+AlertResponse.model_rebuild()
 
 
 # Message Reaction -----------------
