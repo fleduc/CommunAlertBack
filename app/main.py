@@ -34,9 +34,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure static files serving
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 # Include authentication routes.
 print("✅ Importing AUTH routes")
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
@@ -52,6 +49,10 @@ app.include_router(alerts.router, prefix="/api/alerts", tags=["alerts"])
 # Include message routes.
 print("✅ Importing MESSAGES routes")
 app.include_router(messages.router, prefix="/api/alerts/{alert_id}/messages", tags=["messages"])
+
+# Configure static files serving
+print("✅ Importing FILE routes")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/")

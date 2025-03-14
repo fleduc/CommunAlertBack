@@ -59,6 +59,15 @@ class UserBrief(BaseModel):
         from_attributes = True
 
 
+class UserOut(BaseModel):
+    """Schema for UserOut user information."""
+    id: int
+    username: str
+
+    class Config:
+        orm_mode = True
+
+
 # Enums for alerts -----------------
 class AlertStatus(str, Enum):
     """Enum for alert status."""

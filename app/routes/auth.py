@@ -8,7 +8,7 @@ All logging messages and user-facing strings are in English.
 import logging
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status, Body, Response, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Request, Response, status, Query
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
@@ -97,6 +97,32 @@ def login(
 
     logger.info(f"Login successful for {user_credentials.email}, generated token: {token}")
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/me", response_model=schemas.UserOut, tags=["auth"])
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """
+    Get the current authenticated user's information.
+    The endpoint uses the HttpOnly cookie (access_token) to verify the JWT.
+    """
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    # Remove the "Bearer " prefix if present
+    if token.startswith("Bearer "):
+        token = token[len("Bearer "):]
+    try:
+        payload = security.verify_access_token(token)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    user_id = payload.get("user_id")
+    if user_id is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    # Use a Pydantic schema (e.g., UserOut) that excludes sensitive fields
+    return user
 
 
 @router.post("/logout", tags=["auth"])
