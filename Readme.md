@@ -2,6 +2,9 @@
 
 PLEASE NOTE THAT THE PURPOSE OF THIS PROJECT IS TO BE USED FOR JOB INTERVIEWS THIS PROJECT IS NOT COMPLETE, AS IT IS JUST A PROOF OF CONCEPT AND COULD BE MODIFIED AND DEFINITELY IMPROVED IN THE FUTURE
 
+***
+### I HAVE STOPPED THE PUBLIC DEVELOPMENT OF THIS APPLICATION. SINCE I WANT TO PUBLISH THIS SYSTEM, THE REST WILL NOW BE DEVELOPED IN A PRIVATE REPO   
+***
 
 CommunAlert is a full-stack application that provides a user interface for managing alerts and communications. This repository contains the backend code powered by Python FastAPI and a MySQL database, with additional support services such as phpMyAdmin for database management.
 
